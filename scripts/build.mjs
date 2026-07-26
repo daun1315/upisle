@@ -15,6 +15,7 @@ const ALLOWED_PROPS = [
   "text-decoration",
   "text-align",
   "font-size",
+  "font-family",
 ];
 
 function slugify(str, fallback) {
