@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>읽는 중…</title>
+<link rel="stylesheet" href="assets/style.css" />
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
+</head>
+<body>
+
+<div class="reader-toolbar">
+  <button class="back-btn" onclick="location.href='index.html'">← 서재로</button>
+  <div class="reader-title" id="reader-title">불러오는 중…</div>
+  <button class="nav-btn" id="prev-btn" aria-label="이전 페이지">‹</button>
+  <button class="nav-btn" id="next-btn" aria-label="다음 페이지">›</button>
+</div>
+
+<div id="viewer-wrap">
+  <div id="viewer"></div>
+</div>
+
+<script src="assets/reader.js"></script>
+</body>
+</html>
