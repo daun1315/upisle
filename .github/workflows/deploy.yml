@@ -3,10 +3,11 @@ name: Build and Deploy
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [doc-updated]
   schedule:
-    # 3시간마다 구글 문서를 다시 확인해서 사이트를 갱신합니다.
-    # 더 자주/덜 자주 갱신하고 싶다면 cron 값을 수정하세요.
-    - cron: "0 */3 * * *"
+    # 만약을 대비한 안전망 (구글 스크립트가 실패하는 경우를 대비해 6시간마다 확인)
+    - cron: "0 */6 * * *"
   workflow_dispatch: {}
 
 permissions:
