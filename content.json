@@ -1,10 +1,9 @@
-[
-  {
-    "docId": "1DEUxTa3UsEOkOPRPNco-KvDYb8ZGlhXMKrUePqej5tU", "1Za4U9VRw19RQhK5H_n4lOHhZcQMxhHlK--9e3C1QpD4",
-    "category": "CJ'S TREASURE CHASE"
-  },
-  {
-    "docId": "여기에_또다른_구글문서_ID를_붙여넣으세요",
-    "category": "Welcome to Merlin Academy"
-  }
-]
+{
+  "CJ'S TREASURE CHASE": [
+    "1DEUxTa3UsEOkOPRPNco-KvDYb8ZG1hXMKrUePqej5tU",
+    "1Za4U9VRw19RQhK5H_n4lOHhZcQMxhH1K--9e3C1QpD4"
+  ],
+  "Welcome to Merlin Academy": [
+    "1Za4U9VRw19RQhK5H_n4lOHhZcQMxhH1K--9e3C1QpD4"
+  ]
+}
