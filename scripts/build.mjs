@@ -202,47 +202,47 @@ function escapeHtml(str) {
 
 async function main() {
   const configRaw = await fs.readFile(path.join(ROOT, "content.json"), "utf-8");
+  // content.json 형식: { "카테고리명": ["docId1", "docId2"], ... }
   const config = JSON.parse(configRaw);
 
   await fs.mkdir(POSTS_OUT, { recursive: true });
 
-  // 1단계: 모든 문서를 가져와서 정보만 모아둔다 (아직 파일로 쓰지 않음)
+  // 1단계: 카테고리별로 모든 문서를 가져와서 정보만 모아둔다 (아직 파일로 쓰지 않음)
+  // 같은 카테고리 배열 안의 순서가 곧 이전글/다음글 순서가 된다.
   const posts = [];
 
-  for (const entry of config) {
-    if (!entry.docId || entry.docId.startsWith("여기에")) {
-      console.warn("건너뜀: content.json에 실제 구글 문서 ID를 입력해주세요.");
-      continue;
-    }
-    console.log(`가져오는 중: ${entry.docId}`);
-    const rawHtml = await fetchDocHtml(entry.docId);
-    const bodyHtml = cleanGoogleDocHtml(rawHtml);
-    const { title, excerpt } = extractTitleAndExcerpt(null, bodyHtml);
-    const slug = slugify(title, entry.docId);
+  for (const [category, docIds] of Object.entries(config)) {
+    const categoryPosts = [];
 
-    posts.push({
-      slug,
-      title,
-      excerpt,
-      category: entry.category || "미분류",
-      bodyHtml,
+    for (const docId of docIds) {
+      if (!docId || docId.startsWith("여기에")) {
+        console.warn("건너뜀: content.json에 실제 구글 문서 ID를 입력해주세요.");
+        continue;
+      }
+      console.log(`가져오는 중: ${docId} (${category})`);
+      const rawHtml = await fetchDocHtml(docId);
+      const bodyHtml = cleanGoogleDocHtml(rawHtml);
+      const { title, excerpt } = extractTitleAndExcerpt(null, bodyHtml);
+      const slug = slugify(title, docId);
+
+      categoryPosts.push({
+        slug,
+        title,
+        excerpt,
+        category,
+        bodyHtml,
+      });
+    }
+
+    categoryPosts.forEach((p, i) => {
+      p.prev = i > 0 ? categoryPosts[i - 1] : null;
+      p.next = i < categoryPosts.length - 1 ? categoryPosts[i + 1] : null;
     });
+
+    posts.push(...categoryPosts);
   }
 
-  // 2단계: 같은 카테고리 안에서만 이전글/다음글을 계산한다
-  // (content.json에 적은 순서를 글의 순서로 사용)
-  const byCategory = {};
-  posts.forEach((p) => {
-    (byCategory[p.category] ||= []).push(p);
-  });
-  Object.values(byCategory).forEach((catPosts) => {
-    catPosts.forEach((p, i) => {
-      p.prev = i > 0 ? catPosts[i - 1] : null;
-      p.next = i < catPosts.length - 1 ? catPosts[i + 1] : null;
-    });
-  });
-
-  // 3단계: 실제 HTML 파일 생성
+  // 2단계: 실제 HTML 파일 생성
   for (const p of posts) {
     const postHtmlPath = path.join(POSTS_OUT, `${p.slug}.html`);
     await fs.writeFile(
