@@ -118,36 +118,6 @@ body {
   height: auto;
 }
 
-/* 이전글 / 다음글 네비게이션 (같은 카테고리 내에서만 연결됨) */
-.post-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 48px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.post-nav-link {
-  font-size: 14px;
-  color: var(--black);
-  text-decoration: none;
-  max-width: 48%;
-}
-
-.post-nav-link:hover {
-  text-decoration: underline;
-}
-
-.post-nav-disabled {
-  color: #cccccc;
-}
-
-.post-nav-next {
-  text-align: right;
-  margin-left: auto;
-}
-
 /* 사이드바 */
 .sidebar {
   width: 220px;
