@@ -46,12 +46,23 @@ function cleanGoogleDocHtml(rawHtml) {
 
   // 구글 문서는 <style> 안에 .c1, .c2 같은 클래스로 서식을 정의해두고
   // 본문 요소들이 class="c1 c2" 형태로 그 서식을 참조한다.
+  // 구글 문서는 .c1,.c5,.c9{font-size:11pt;...} 처럼 여러 클래스를 쉼표로
+  // 묶어서 스타일을 정의하는 경우가 많다. 이런 묶음 선택자도 놓치지 않고
+  // 각 클래스별로 전부 등록해야 한다.
   const styleText = $("style").text();
   const classStyles = {};
-  const ruleRegex = /\.([\w-]+)\s*\{([^}]*)\}/g;
+  const ruleRegex = /([^{}]+)\{([^}]*)\}/g;
   let match;
   while ((match = ruleRegex.exec(styleText))) {
-    classStyles[match[1]] = match[2];
+    const selectorList = match[1];
+    const decls = match[2];
+    selectorList.split(",").forEach((sel) => {
+      const trimmed = sel.trim();
+      if (trimmed.startsWith(".")) {
+        const cls = trimmed.slice(1);
+        classStyles[cls] = (classStyles[cls] || "") + decls + ";";
+      }
+    });
   }
 
   $("body *").each((_, el) => {
@@ -261,12 +272,17 @@ async function main() {
   await fs.writeFile(
     path.join(DOCS_OUT, "posts.json"),
     JSON.stringify(
-      posts.map(({ slug, title, excerpt, category }) => ({
-        slug,
-        title,
-        excerpt,
-        category,
-      })),
+      // content.json에 나중에 적을수록(뒤쪽일수록) 최신 글로 취급해서
+      // 메인 화면 목록에서 위쪽에 뜨도록 순서를 뒤집는다.
+      posts
+        .slice()
+        .reverse()
+        .map(({ slug, title, excerpt, category }) => ({
+          slug,
+          title,
+          excerpt,
+          category,
+        })),
       null,
       2
     ),
