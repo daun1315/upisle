@@ -75,6 +75,17 @@ function cleanGoogleDocHtml(rawHtml) {
 
   $("style").remove();
 
+  // 빈 문단(엔터만 눌러서 만든 빈 줄)은 브라우저가 높이를 0으로 접어버려서
+  // 사라져 보인다. 실제 텍스트가 없는 <p>에 줄바꿈 공백을 채워 높이를 유지시킨다.
+  $("body p").each((_, el) => {
+    const $el = $(el);
+    const hasText = $el.text().trim().length > 0;
+    const hasImage = $el.find("img").length > 0;
+    if (!hasText && !hasImage) {
+      $el.html("&nbsp;");
+    }
+  });
+
   // 빈 span, 불필요한 a name 앵커 등 정리
   $("a[name]").each((_, el) => {
     const $el = $(el);
