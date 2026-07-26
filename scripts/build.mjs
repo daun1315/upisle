@@ -110,7 +110,18 @@ function extractTitleAndExcerpt($, bodyHtml) {
   return { title: title || "제목 없음", excerpt };
 }
 
-function postPageTemplate({ title, category, bodyHtml }) {
+function postPageTemplate({ title, category, bodyHtml, prev, next }) {
+  const prevLink = prev
+    ? `<a class="post-nav-link post-nav-prev" href="${prev.slug}.html">&larr; ${escapeHtml(
+        prev.title
+      )}</a>`
+    : `<span class="post-nav-link post-nav-disabled">&larr; 이전글 없음</span>`;
+  const nextLink = next
+    ? `<a class="post-nav-link post-nav-next" href="${next.slug}.html">${escapeHtml(
+        next.title
+      )} &rarr;</a>`
+    : `<span class="post-nav-link post-nav-disabled">다음글 없음 &rarr;</span>`;
+
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -127,6 +138,10 @@ function postPageTemplate({ title, category, bodyHtml }) {
       <p class="post-category">${escapeHtml(category)}</p>
       <div class="post-body">${bodyHtml}</div>
     </article>
+    <nav class="post-nav">
+      ${prevLink}
+      ${nextLink}
+    </nav>
   </main>
   <aside class="sidebar" id="sidebar">
     <h2 class="sidebar-title">카테고리</h2>
@@ -179,6 +194,7 @@ async function main() {
 
   await fs.mkdir(POSTS_OUT, { recursive: true });
 
+  // 1단계: 모든 문서를 가져와서 정보만 모아둔다 (아직 파일로 쓰지 않음)
   const posts = [];
 
   for (const entry of config) {
@@ -192,24 +208,56 @@ async function main() {
     const { title, excerpt } = extractTitleAndExcerpt(null, bodyHtml);
     const slug = slugify(title, entry.docId);
 
-    const postHtmlPath = path.join(POSTS_OUT, `${slug}.html`);
-    await fs.writeFile(
-      postHtmlPath,
-      postPageTemplate({ title, category: entry.category || "미분류", bodyHtml }),
-      "utf-8"
-    );
-
     posts.push({
       slug,
       title,
       excerpt,
       category: entry.category || "미분류",
+      bodyHtml,
     });
+  }
+
+  // 2단계: 같은 카테고리 안에서만 이전글/다음글을 계산한다
+  // (content.json에 적은 순서를 글의 순서로 사용)
+  const byCategory = {};
+  posts.forEach((p) => {
+    (byCategory[p.category] ||= []).push(p);
+  });
+  Object.values(byCategory).forEach((catPosts) => {
+    catPosts.forEach((p, i) => {
+      p.prev = i > 0 ? catPosts[i - 1] : null;
+      p.next = i < catPosts.length - 1 ? catPosts[i + 1] : null;
+    });
+  });
+
+  // 3단계: 실제 HTML 파일 생성
+  for (const p of posts) {
+    const postHtmlPath = path.join(POSTS_OUT, `${p.slug}.html`);
+    await fs.writeFile(
+      postHtmlPath,
+      postPageTemplate({
+        title: p.title,
+        category: p.category,
+        bodyHtml: p.bodyHtml,
+        prev: p.prev,
+        next: p.next,
+      }),
+      "utf-8"
+    );
   }
 
   await fs.writeFile(
     path.join(DOCS_OUT, "posts.json"),
-    JSON.stringify(posts, null, 2),
+    JSON.stringify(
+      posts.map(({ slug, title, excerpt, category }) => ({
+        slug,
+        title,
+        excerpt,
+        category,
+      })),
+      null,
+      2
+    ),
     "utf-8"
   );
 
